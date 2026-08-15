@@ -411,3 +411,171 @@ if (prefersReduced) {
   pills.forEach(pill => pill.addEventListener('click', close));
   addEventListener('keydown', e => { if (e.key === 'Escape' && isOpen) close(); });
 })();
+
+// ---------- Skill wheel (Stack section) ----------
+// Ported from React Bits' OptionWheel to vanilla JS: a curved, draggable
+// list where options sit on a circle whose radius keeps the arc length
+// between neighbors equal to one row height (tilt controls how tightly
+// it curls), eased toward its target with frame-rate-independent
+// exponential smoothing rather than a fixed-duration tween.
+(function () {
+  const root = document.getElementById('skillWheel');
+  if (!root) return;
+
+  const items = [
+    'Python', 'Java', 'C++', 'JavaScript', 'TypeScript', 'SQL',
+    'FastAPI', 'Node.js', 'MongoDB', 'MySQL',
+    'Apache Spark', 'Apache Airflow', 'Delta Lake',
+    'AWS EC2', 'Docker', 'Amazon S3', 'Git',
+  ];
+  const cfg = {
+    fontSize: 1.7,      // rem, matches --ow-font-size in CSS
+    spacing: 1.3,
+    curve: 1,
+    tilt: 8,             // degrees between neighboring options
+    blur: 1.5,
+    fade: 0.22,
+    minOpacity: 0.08,
+    side: 'left',
+    loop: true,
+    smoothing: 180,      // ms, easing time constant
+    draggable: true,
+  };
+
+  const remPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+  const rowH = Math.max(cfg.fontSize * cfg.spacing * remPx, 1);
+  const n = items.length;
+
+  const itemEls = items.map((label, i) => {
+    const el = document.createElement('div');
+    el.className = 'option-wheel__item';
+    el.setAttribute('role', 'option');
+    el.textContent = label;
+    el.addEventListener('click', () => { if (!dragMoved) applyTarget(closestEquivalent(i), true); });
+    root.appendChild(el);
+    return el;
+  });
+
+  let pos = 0;      // 'Python' — first language, leads the list
+  let target = 0;
+  let rafId = null;
+  let last = 0;
+  let dragState = null;
+  let dragMoved = false;
+  let wheelTimer = null;
+
+  function runFrame(now) {
+    const dt = Math.min((now - last) / 1000, 0.05);
+    last = now;
+    const tau = Math.max(cfg.smoothing, 1) / 1000;
+    const k = 1 - Math.exp(-dt / tau);
+    let next = pos + (target - pos) * k;
+    const settled = Math.abs(target - next) < 0.001;
+    if (settled) next = target;
+    pos = next;
+
+    const mirror = cfg.side === 'right' ? -1 : 1;
+    const tiltRad = (cfg.tilt * Math.PI) / 180;
+    const R = tiltRad > 0.0005 ? rowH / tiltRad : 0;
+
+    itemEls.forEach((el, i) => {
+      let d = i - pos;
+      if (cfg.loop && n > 1) {
+        d = ((d % n) + n) % n;
+        if (d > n / 2) d -= n;
+      }
+      const dist = Math.abs(d);
+      let x = 0, y = d * rowH, rot = 0;
+      if (R > 0) {
+        const ang = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, d * tiltRad));
+        y = R * Math.sin(ang);
+        x = -mirror * R * (1 - Math.cos(ang)) * cfg.curve;
+        rot = (mirror * ang * 180) / Math.PI;
+      }
+      el.style.transform = `translate(${x.toFixed(2)}px, calc(${y.toFixed(2)}px - 50%)) rotate(${rot.toFixed(3)}deg)`;
+      el.style.opacity = String(Math.max(cfg.minOpacity, 1 - dist * cfg.fade));
+      el.style.filter = cfg.blur > 0 ? `blur(${(dist * cfg.blur).toFixed(2)}px)` : 'none';
+      el.style.setProperty('--ow-p', Math.max(0, 1 - Math.min(dist, 1)).toFixed(4));
+    });
+
+    rafId = settled ? null : requestAnimationFrame(runFrame);
+  }
+
+  function startLoop() {
+    if (rafId != null) cancelAnimationFrame(rafId);
+    last = performance.now();
+    rafId = requestAnimationFrame(runFrame);
+  }
+
+  let selected = 0;
+  function closestEquivalent(index) {
+    // When looping, pick whichever wrap of `index` is nearest the current
+    // target so clicking a faded-out item spins the short way around.
+    const cur = target;
+    let d = index - (((cur % n) + n) % n);
+    if (cfg.loop && n > 1) {
+      if (d > n / 2) d -= n;
+      else if (d < -n / 2) d += n;
+    }
+    return cur + d;
+  }
+
+  function applyTarget(value, snap) {
+    let v = value;
+    if (!cfg.loop) v = Math.min(Math.max(v, 0), Math.max(n - 1, 0));
+    if (snap) v = Math.round(v);
+    target = v;
+    const idx = ((Math.round(v) % n) + n) % n;
+    if (idx !== selected) {
+      selected = idx;
+      itemEls.forEach((el, i) => el.classList.toggle('option-wheel__item--selected', i === idx));
+      root.setAttribute('aria-activedescendant', '');
+    }
+    startLoop();
+  }
+
+  root.addEventListener('wheel', e => {
+    e.preventDefault();
+    const delta = e.deltaMode === 1 ? e.deltaY * 24 : e.deltaY;
+    const step = Math.max(-1, Math.min(1, delta / rowH));
+    applyTarget(target + step, false);
+    if (wheelTimer) clearTimeout(wheelTimer);
+    wheelTimer = setTimeout(() => applyTarget(target, true), 140);
+  }, { passive: false });
+
+  root.addEventListener('pointerdown', e => {
+    if (!cfg.draggable) return;
+    dragState = { y: e.clientY, start: target, id: e.pointerId };
+    dragMoved = false;
+    root.classList.add('option-wheel--dragging');
+  });
+  root.addEventListener('pointermove', e => {
+    if (!dragState) return;
+    const dy = e.clientY - dragState.y;
+    if (!dragMoved && Math.abs(dy) > 4) {
+      dragMoved = true;
+      root.setPointerCapture(dragState.id);
+    }
+    if (dragMoved) applyTarget(dragState.start - dy / rowH, false);
+  });
+  function endDrag() {
+    if (!dragState) return;
+    dragState = null;
+    root.classList.remove('option-wheel--dragging');
+    if (dragMoved) applyTarget(target, true);
+  }
+  root.addEventListener('pointerup', endDrag);
+  root.addEventListener('pointercancel', endDrag);
+
+  root.addEventListener('keydown', e => {
+    let delta = null;
+    if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') delta = -1;
+    else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') delta = 1;
+    if (delta == null) return;
+    e.preventDefault();
+    applyTarget(Math.round(target) + delta, true);
+  });
+
+  itemEls[0].classList.add('option-wheel__item--selected');
+  applyTarget(0, true);
+})();

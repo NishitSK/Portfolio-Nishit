@@ -552,6 +552,57 @@
   .also a { color: var(--navy); font-weight: 600; text-decoration: none; }
   .also a:hover { color: var(--cobalt); text-decoration: underline; }
 
+  /* ---------- skill wheel (companion to the stack grid below) ---------- */
+  .skill-wheel-wrap {
+    border: 1px solid var(--ink);
+    margin-bottom: -1px;
+    height: 220px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .skill-wheel-caption {
+    position: absolute;
+    right: 18px;
+    bottom: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--slate);
+    pointer-events: none;
+    z-index: 2;
+  }
+  .option-wheel {
+    --ow-text-color: var(--slate);
+    --ow-active-color: var(--cobalt);
+    --ow-font-size: 1.7rem;
+    --ow-inset: 28px;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+    outline: none;
+  }
+  .option-wheel--dragging { cursor: grabbing; }
+  .option-wheel__item {
+    position: absolute;
+    top: 50%;
+    left: var(--ow-inset);
+    white-space: nowrap;
+    font-family: var(--display);
+    font-size: var(--ow-font-size);
+    line-height: 1;
+    font-weight: 600;
+    transform-origin: left center;
+    cursor: pointer;
+    color: color-mix(in srgb, var(--ow-active-color) calc(var(--ow-p, 0) * 100%), var(--ow-text-color));
+  }
+  .option-wheel__item--selected { font-weight: 800; }
+
   /* ---------- stack ---------- */
   .stack-grid {
     display: grid;
@@ -905,6 +956,10 @@
       <div class="sec-head">
         <h2>Stack</h2>
         <span class="tag">Tools I reach for</span>
+      </div>
+      <div class="skill-wheel-wrap reveal">
+        <div id="skillWheel" class="option-wheel" role="listbox" tabindex="0" aria-label="Skills — scroll or drag to browse"></div>
+        <p class="skill-wheel-caption">Scroll or drag</p>
       </div>
       <div class="stack-grid reveal">
         <div class="stack-col">
