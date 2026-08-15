@@ -1,4 +1,5 @@
 import { animate, stagger, scrambleText } from 'animejs';
+import { gsap } from 'gsap';
 
 const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -35,12 +36,35 @@ function fillBars(root) {
   });
 }
 
+// Flagship stat tiles count up from 0 to their real value on reveal.
+// The static text already in the HTML is the correct final value, so
+// under reduced motion we just leave it alone rather than animate.
+function countUpMetrics(root) {
+  const els = root.querySelectorAll('.countup');
+  if (!els.length || prefersReduced) return;
+  els.forEach(el => {
+    const to = parseFloat(el.dataset.to);
+    const decimals = parseInt(el.dataset.decimals || '0', 10);
+    const suffix = el.dataset.suffix || '';
+    const sign = to < 0 ? '−' : ''; // proper minus glyph, matches the rest of the page
+    const target = Math.abs(to);
+    const obj = { v: 0 };
+    gsap.to(obj, {
+      v: target,
+      duration: 1.4,
+      ease: 'power2.out',
+      onUpdate: () => { el.textContent = sign + obj.v.toFixed(decimals) + suffix; },
+    });
+  });
+}
+
 // Animate carbon bars + section reveals on scroll
 const reveals = new Set(document.querySelectorAll('.reveal'));
 
 function show(el) {
   el.classList.add('in');
   fillBars(el);
+  countUpMetrics(el);
   reveals.delete(el);
   io.unobserve(el);
 }
