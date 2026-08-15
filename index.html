@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
 <style>
   :root {
     --paper: #FFFFFF;
@@ -184,7 +185,6 @@
     height: 100%;
     background: var(--carbon);
     width: 0;
-    transition: width 1.1s cubic-bezier(.2,.7,.2,1);
   }
   .bar.dirty { background: var(--coal); }
   .board-row .ci { text-align: right; font-weight: 600; color: var(--navy); }
@@ -195,6 +195,56 @@
     font-size: 11.5px;
     color: var(--slate);
     letter-spacing: 0.03em;
+  }
+
+  /* ---------- ascii portrait ---------- */
+  .portrait-section {
+    margin-top: 88px;
+    background: #000;
+    padding: 76px 24px;
+    display: flex;
+    justify-content: center;
+  }
+  .portrait-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    max-width: 520px;
+    width: 100%;
+  }
+  .ascii-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--cols), var(--cell));
+    grid-auto-rows: calc(var(--cell) * 1.18);
+    justify-content: center;
+    perspective: 500px;
+    cursor: pointer;
+  }
+  .flap {
+    width: var(--cell);
+    height: calc(var(--cell) * 1.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: calc(var(--cell) * 0.92);
+    line-height: 1;
+    color: #EDEDF2;
+    contain: strict;
+    transition: transform 75ms linear, color 75ms linear;
+  }
+  .flap.rot {
+    transform: rotateX(90deg);
+    color: #8A8A96;
+    will-change: transform; /* only the tiles mid-flip get promoted, not all ~2k at rest */
+  }
+  .portrait-caption {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #5A5A66;
   }
 
   /* ---------- sections ---------- */
@@ -506,11 +556,16 @@
   .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
   .reveal.in { opacity: 1; transform: none; }
 
+  .hero-in { display: inline-block; opacity: 0; }
+  .hero h1 .hero-in { display: inline-block; }
+  p.hero-in, div.hero-in { display: block; }
+
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     .reveal { opacity: 1; transform: none; transition: none; }
-    .bar { transition: none; }
+    .hero-in { opacity: 1; transform: none; }
     .board-head .live::before { animation: none; }
+    .flap { transition: none !important; }
   }
 
   /* ---------- responsive ---------- */
@@ -534,6 +589,7 @@
     section { padding-top: 64px; }
     .sec-head { flex-wrap: wrap; }
     .sec-head .tag { white-space: normal; }
+    .portrait-section { margin-top: 64px; padding: 56px 16px; }
   }
 </style>
 </head>
@@ -556,10 +612,10 @@
 <main>
   <div class="wrap">
     <section class="hero" aria-label="Introduction">
-      <p class="hero-eyebrow"><b>Backend · Cloud · Data</b> &nbsp;/&nbsp; CSE '27, Sahyadri College of Engineering, Mangaluru</p>
-      <h1>I build backends that chase the <em>cleanest grid.</em></h1>
-      <p class="hero-sub">Final-year computer science student engineering <strong>cloud schedulers, APIs and data pipelines</strong>. My flagship system routes cloud workloads across regions by live carbon intensity — cutting CO₂ by a third without missing a single SLA.</p>
-      <div class="hero-ctas">
+      <p class="hero-eyebrow hero-in"><b>Backend · Cloud · Data</b> &nbsp;/&nbsp; CSE '27, Sahyadri College of Engineering, Mangaluru</p>
+      <h1><span class="hero-in">I build backends that chase the</span> <span class="hero-in"><em>cleanest grid.</em></span></h1>
+      <p class="hero-sub hero-in">Final-year computer science student engineering <strong>cloud schedulers, APIs and data pipelines</strong>. My flagship system routes cloud workloads across regions by live carbon intensity — cutting CO₂ by a third without missing a single SLA.</p>
+      <div class="hero-ctas hero-in">
         <a class="btn btn-solid" href="#flagship">See the flagship</a>
         <a class="btn btn-ghost" href="resume.pdf" download="Nishit_SK_Resume.pdf">Download resume</a>
         <a class="btn btn-ghost" href="mailto:nishitsk42@gmail.com">Get in touch</a>
@@ -580,7 +636,17 @@
         <div class="board-note">Same job, 47× difference in emissions depending on where it runs. That gap is what my scheduler exploits.</div>
       </div>
     </section>
+  </div>
 
+  <section class="portrait-section reveal" id="portrait" aria-label="Portrait">
+    <div class="portrait-inner">
+      <div id="asciiGrid" class="ascii-grid" role="img" aria-label="ASCII portrait of Nishit S K"></div>
+      <p class="portrait-caption">Hover to reconstruct</p>
+    </div>
+    <img id="portraitSource" src="portrait.png" alt="" hidden>
+  </section>
+
+  <div class="wrap">
     <section id="flagship" aria-label="Flagship project">
       <div class="sec-head">
         <h2>Flagship</h2>
@@ -782,12 +848,30 @@
 </footer>
 
 <script>
+  const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const hasAnime = typeof anime === 'function';
+
+  function fillBars(root) {
+    const bars = root.querySelectorAll('.bar');
+    if (prefersReduced || !hasAnime) {
+      bars.forEach(b => { b.style.width = b.dataset.w + '%'; });
+      return;
+    }
+    anime({
+      targets: bars,
+      width: (el) => el.dataset.w + '%',
+      easing: 'easeOutExpo',
+      duration: 900,
+      delay: anime.stagger(70),
+    });
+  }
+
   // Animate carbon bars + section reveals on scroll
   const reveals = new Set(document.querySelectorAll('.reveal'));
 
   function show(el) {
     el.classList.add('in');
-    el.querySelectorAll('.bar').forEach(b => { b.style.width = b.dataset.w + '%'; });
+    fillBars(el);
     reveals.delete(el);
     io.unobserve(el);
   }
@@ -807,6 +891,196 @@
   }
   addEventListener('scroll', sweep, { passive: true });
   sweep();
+
+  // One-shot hero entrance on page load.
+  const heroEls = document.querySelectorAll('.hero-in');
+  if (prefersReduced || !hasAnime) {
+    heroEls.forEach(el => { el.style.opacity = 1; });
+  } else {
+    anime({
+      targets: heroEls,
+      opacity: [0, 1],
+      translateY: [16, 0],
+      easing: 'easeOutQuad',
+      duration: 700,
+      delay: anime.stagger(90, { start: 100 }),
+    });
+  }
+</script>
+
+<script>
+  // ---------- ASCII split-flap portrait ----------
+  // Reads real pixel brightness off the source photo and maps it to a
+  // density ramp, so the reconstructed grid actually matches the image
+  // instead of hand-placed characters.
+  (function () {
+    // Dark -> light, background -> subject. A long, finely-graded ramp gives
+    // far smoother tonal steps than a short one, at no extra runtime cost —
+    // it only affects which character gets picked, not how many tiles exist.
+    const RAMP = ' .`^",:;Il!i><~+_-?][}{1)(|ftjrxnuvczXYUJCLQOZmwqpdbkhao*#MW&8%B@$';
+    const CYCLE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
+    const FLIP_STEPS = 2;        // random characters shown before settling
+    const CELL_ASPECT = 1.18;    // must match .flap's height:width ratio in CSS
+    const ROW_STEP_MS = 22;      // time between one printed layer (row) and the next
+    const INTRA_ROW_STEP_MS = 2; // nozzle sweep speed across a layer, left -> right
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const section = document.getElementById('portrait');
+    const grid = document.getElementById('asciiGrid');
+    const img = document.getElementById('portraitSource');
+    if (!section || !grid || !img) return;
+
+    function colsForWidth() {
+      const w = innerWidth;
+      if (w <= 560) return 24;
+      if (w <= 900) return 36;
+      return 50;
+    }
+
+    let tiles = [];      // flat list of { el, char }
+    let cols = 0, rows = 0;
+    let animating = false;
+    let hasPlayedOnce = false;
+
+    function sampleImage(sourceEl) {
+      cols = colsForWidth();
+      const aspect = sourceEl.naturalHeight / sourceEl.naturalWidth || 1.25;
+      // Each tile is 1.18x taller than wide (see .flap height in CSS), so
+      // dividing by that ratio is what keeps the grid's overall proportions
+      // matching the source photo instead of squashing it vertically.
+      rows = Math.max(1, Math.round((cols * aspect) / CELL_ASPECT));
+
+      const canvas = document.createElement('canvas');
+      canvas.width = cols;
+      canvas.height = rows;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(sourceEl, 0, 0, cols, rows);
+      const { data } = ctx.getImageData(0, 0, cols, rows);
+
+      const chars = new Array(cols * rows);
+      for (let i = 0; i < cols * rows; i++) {
+        const r = data[i * 4], g = data[i * 4 + 1], b = data[i * 4 + 2];
+        const brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        const idx = Math.min(RAMP.length - 1, Math.floor(brightness * RAMP.length));
+        chars[i] = RAMP[idx];
+      }
+      return chars;
+    }
+
+    function buildGrid(chars) {
+      grid.style.setProperty('--cols', cols);
+      const cellPx = Math.min(11, Math.max(6, Math.floor(480 / cols)));
+      grid.style.setProperty('--cell', cellPx + 'px');
+      grid.innerHTML = '';
+      tiles = new Array(cols * rows);
+      const frag = document.createDocumentFragment();
+      for (let i = 0; i < chars.length; i++) {
+        const span = document.createElement('span');
+        span.className = 'flap';
+        span.textContent = chars[i];
+        frag.appendChild(span);
+        tiles[i] = { el: span, char: chars[i] };
+      }
+      grid.appendChild(frag);
+    }
+
+    // Resolves on the transform transitionend, or a timeout backstop —
+    // so a tile can never get stuck mid-flip if a paint is skipped
+    // (backgrounded tab, dropped frame, etc).
+    function waitTurn(el) {
+      return new Promise(resolve => {
+        let done = false;
+        const finish = () => { if (done) return; done = true; resolve(); };
+        el.addEventListener('transitionend', finish, { once: true });
+        setTimeout(finish, 180);
+      });
+    }
+
+    async function flipTile(tile, delay) {
+      await new Promise(r => setTimeout(r, delay));
+      for (let step = 0; step < FLIP_STEPS; step++) {
+        tile.el.classList.add('rot');
+        await waitTurn(tile.el);
+        const isFinal = step === FLIP_STEPS - 1;
+        tile.el.textContent = isFinal ? tile.char : CYCLE_CHARS[(Math.random() * CYCLE_CHARS.length) | 0];
+        tile.el.classList.remove('rot');
+        await waitTurn(tile.el);
+      }
+    }
+
+    // Bottom-up, layer by layer, like an FDM print head raster-scanning each
+    // row before the build plate "moves" to the next one — alternating sweep
+    // direction per layer (boustrophedon) the way a real printer paths it.
+    function playWave() {
+      if (animating || reducedMotion || !tiles.length) return;
+      animating = true;
+      tiles.forEach((tile, i) => {
+        const row = Math.floor(i / cols), col = i % cols;
+        const layer = rows - 1 - row;           // 0 = bottom row, prints first
+        const sweepCol = layer % 2 === 0 ? col : (cols - 1 - col);
+        flipTile(tile, layer * ROW_STEP_MS + sweepCol * INTRA_ROW_STEP_MS);
+      });
+      const worst = rows * ROW_STEP_MS + cols * INTRA_ROW_STEP_MS + FLIP_STEPS * 2 * 180 + 200;
+      setTimeout(() => { animating = false; }, worst);
+    }
+
+    let activeSource = null;
+
+    function init(sourceEl) {
+      activeSource = sourceEl;
+      buildGrid(sampleImage(sourceEl));
+      if (reducedMotion) return; // static, already-resolved grid is enough
+      grid.addEventListener('mouseenter', playWave);
+      grid.addEventListener('click', playWave); // touch fallback
+      const once = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          if (e.isIntersecting && !hasPlayedOnce) {
+            hasPlayedOnce = true;
+            playWave();
+            once.disconnect();
+          }
+        });
+      }, { threshold: 0.4 });
+      once.observe(section);
+    }
+
+    function placeholderSource() {
+      // Simple procedural silhouette so the component works before a real photo is wired in.
+      const c = document.createElement('canvas');
+      c.width = 200; c.height = 250;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 200, 250);
+      const grad = ctx.createRadialGradient(100, 95, 10, 100, 95, 70);
+      grad.addColorStop(0, '#ddd'); grad.addColorStop(1, '#000');
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.arc(100, 95, 55, 0, Math.PI * 2); ctx.fill();
+      const grad2 = ctx.createRadialGradient(100, 230, 20, 100, 230, 110);
+      grad2.addColorStop(0, '#bbb'); grad2.addColorStop(1, '#000');
+      ctx.fillStyle = grad2;
+      ctx.beginPath(); ctx.ellipse(100, 250, 90, 90, 0, Math.PI, 0); ctx.fill();
+      const ph = new Image();
+      ph.onload = () => init(ph);
+      ph.src = c.toDataURL();
+    }
+
+    let resizeTimer;
+    addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        const newCols = colsForWidth();
+        if (newCols !== cols && activeSource) buildGrid(sampleImage(activeSource));
+      }, 200);
+    });
+
+    if (img.complete) {
+      // Settled already (cache hit or a load/error that fired before we attached
+      // listeners) — naturalWidth tells us which outcome it was.
+      if (img.naturalWidth) init(img); else placeholderSource();
+    } else {
+      img.addEventListener('load', () => init(img));
+      img.addEventListener('error', placeholderSource);
+    }
+  })();
 </script>
 
 </body>
