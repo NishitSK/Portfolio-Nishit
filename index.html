@@ -202,17 +202,41 @@
     margin-top: 88px;
     background: #000;
     padding: 76px 24px;
+  }
+  .portrait-row {
+    max-width: 980px;
+    margin: 0 auto;
     display: flex;
-    justify-content: center;
+    align-items: center;
+    gap: 56px;
   }
   .portrait-inner {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 18px;
-    max-width: 520px;
-    width: 100%;
+    flex: 0 0 auto;
   }
+  .portrait-about { flex: 1 1 320px; min-width: 0; }
+  .portrait-about-eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #6E8CFF;
+    margin-bottom: 14px;
+  }
+  .portrait-about-h {
+    font-size: clamp(24px, 3vw, 34px);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    color: #fff;
+    line-height: 1.05;
+    margin-bottom: 18px;
+  }
+  .portrait-about p { color: #B7BACC; margin-bottom: 14px; }
+  .portrait-about p strong { color: #fff; }
   .ascii-grid {
     display: grid;
     grid-template-columns: repeat(var(--cols), var(--cell));
@@ -578,6 +602,8 @@
     .about-grid { grid-template-columns: 1fr; gap: 32px; }
     .xp { grid-template-columns: 1fr; }
     .xp-meta { border-right: none; border-bottom: 1px solid var(--ink); }
+    .portrait-row { flex-direction: column; gap: 36px; }
+    .portrait-about { text-align: center; }
   }
   @media (max-width: 680px) {
     .proj-grid { grid-template-columns: 1fr; }
@@ -639,9 +665,17 @@
   </div>
 
   <section class="portrait-section reveal" id="portrait" aria-label="Portrait">
-    <div class="portrait-inner">
-      <div id="asciiGrid" class="ascii-grid" role="img" aria-label="ASCII portrait of Nishit S K"></div>
-      <p class="portrait-caption">Hover to reconstruct</p>
+    <div class="portrait-row">
+      <div class="portrait-inner">
+        <div id="asciiGrid" class="ascii-grid" role="img" aria-label="ASCII portrait of Nishit S K"></div>
+        <p class="portrait-caption">Hover to reconstruct</p>
+      </div>
+      <div class="portrait-about">
+        <p class="portrait-about-eyebrow">About me</p>
+        <h2 class="portrait-about-h">Systems before slogans.</h2>
+        <p>I'm Nishit — final-year CSE at Sahyadri College, building backends and cloud systems that have to hold up under real constraints, not just demo well. <strong>Cloud, data, backend — that's the stack I actually want to work in.</strong></p>
+        <p>Every project on this page is one I finished and can defend line by line, not another item on a longer list of things I started.</p>
+      </div>
     </div>
     <img id="portraitSource" src="portrait.png" alt="" hidden>
   </section>
