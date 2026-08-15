@@ -625,9 +625,9 @@
   <div class="wrap top-inner">
     <a class="wordmark" href="#">NISHIT&nbsp;S&nbsp;K<span>.</span></a>
     <nav class="main-nav" aria-label="Main">
-      <a href="#flagship">Flagship</a>
       <a href="#experience">Experience</a>
       <a href="#work">Work</a>
+      <a href="#flagship">Flagship</a>
       <a href="#stack">Stack</a>
       <a href="#about">About</a>
       <a href="#contact">Contact</a>
@@ -639,27 +639,12 @@
   <div class="wrap">
     <section class="hero" aria-label="Introduction">
       <p class="hero-eyebrow hero-in"><b>Backend · Cloud · Data</b> &nbsp;/&nbsp; CSE '27, Sahyadri College of Engineering, Mangaluru</p>
-      <h1><span class="hero-in">I build backends that chase the</span> <span class="hero-in"><em>cleanest grid.</em></span></h1>
-      <p class="hero-sub hero-in">Final-year computer science student engineering <strong>cloud schedulers, APIs and data pipelines</strong>. My flagship system routes cloud workloads across regions by live carbon intensity — cutting CO₂ by a third without missing a single SLA.</p>
+      <h1><span class="hero-in">I build systems that</span> <span class="hero-in"><em>have to work.</em></span></h1>
+      <p class="hero-sub hero-in">Final-year computer science student working across <strong>cloud infrastructure, data pipelines and backend systems</strong> — a carbon-aware cloud scheduler, production web platforms, a data lakehouse pipeline, developer tools people actually use.</p>
       <div class="hero-ctas hero-in">
-        <a class="btn btn-solid" href="#flagship">See the flagship</a>
+        <a class="btn btn-solid" href="#work">See my work</a>
         <a class="btn btn-ghost" href="resume.pdf" download="Nishit_SK_Resume.pdf">Download resume</a>
         <a class="btn btn-ghost" href="mailto:nishitsk42@gmail.com">Get in touch</a>
-      </div>
-
-      <!-- signature: region board -->
-      <div class="board reveal" aria-label="Cloud region carbon intensity board">
-        <div class="board-head">
-          <span class="t">Region board — grid carbon intensity, gCO₂/kWh</span>
-          <span class="live">Scheduler input</span>
-        </div>
-        <div class="board-row"><span class="region">EU-NORTH-2 · Norway</span><span class="src">Hydro 97%</span><div class="bar-track"><div class="bar" data-w="2.1"></div></div><span class="ci">~15</span></div>
-        <div class="board-row"><span class="region">EU-NORTH-1 · Sweden</span><span class="src">Hydro + Nuclear</span><div class="bar-track"><div class="bar" data-w="5.6"></div></div><span class="ci">~40</span></div>
-        <div class="board-row"><span class="region">EU-WEST-1 · Ireland</span><span class="src">Wind + Gas</span><div class="bar-track"><div class="bar" data-w="32.4"></div></div><span class="ci">~230</span></div>
-        <div class="board-row"><span class="region">US-EAST-1 · Virginia</span><span class="src">Mixed</span><div class="bar-track"><div class="bar dirty" data-w="53.5"></div></div><span class="ci">~380</span></div>
-        <div class="board-row"><span class="region">AP-SOUTHEAST-1 · Singapore</span><span class="src">Gas</span><div class="bar-track"><div class="bar dirty" data-w="63.4"></div></div><span class="ci">~450</span></div>
-        <div class="board-row"><span class="region">AP-SOUTH-1 · Mumbai</span><span class="src">Coal dominant</span><div class="bar-track"><div class="bar dirty" data-w="100"></div></div><span class="ci">~710</span></div>
-        <div class="board-note">Same job, 47× difference in emissions depending on where it runs. That gap is what my scheduler exploits.</div>
       </div>
     </section>
   </div>
@@ -681,30 +666,6 @@
   </section>
 
   <div class="wrap">
-    <section id="flagship" aria-label="Flagship project">
-      <div class="sec-head">
-        <h2>Flagship</h2>
-        <span class="tag">VTU Major Project · Research Paper In Progress</span>
-      </div>
-      <div class="flagship reveal">
-        <div class="flag-copy">
-          <p class="role">Scheduler · Forecasting · Cloud</p>
-          <h3>Carbon-Aware AI Workload Scheduler</h3>
-          <p>A two-phase, <strong>SLA-first scheduler</strong> that decides <em>where</em> and <em>when</em> cloud jobs run. Phase 1 hard-filters regions on latency and capacity; Phase 2 minimises emissions across the survivors using a full energy model (CPU × TDP × exec time × PUE × carbon intensity).</p>
-          <p>Delay-tolerant jobs get <strong>joint spatial + temporal shifting</strong> with a 4-hour look-ahead; latency-sensitive jobs shift across space only. Live carbon intensity comes from the <strong>Electricity Maps API</strong> with MongoDB caching; forecasting benchmarked with <strong>LSTM vs ARIMA vs persistence</strong> on 4 years of per-zone grid data, tested fully out-of-sample on every season of 2025. An <strong>RL scheduler is benchmarked against the rule-based one</strong>, with a FastAPI analytics layer and React dashboard on top.</p>
-          <div class="stack-tags">
-            <span>Python</span><span>FastAPI</span><span>LSTM</span><span>ARIMA</span><span>RL</span><span>Electricity Maps API</span><span>MongoDB</span><span>React</span>
-          </div>
-        </div>
-        <div class="flag-metrics">
-          <div class="metric"><span class="num"><em>−31.5%</em></span><span class="lbl">CO₂ across all 50 workloads</span></div>
-          <div class="metric"><span class="num">100%</span><span class="lbl">SLA compliance — 50/50 jobs</span></div>
-          <div class="metric"><span class="num">−39.9%</span><span class="lbl">CO₂ on delay-tolerant jobs</span></div>
-          <div class="metric"><span class="num">6</span><span class="lbl">Regions, Norway → Mumbai</span></div>
-        </div>
-      </div>
-    </section>
-
     <section id="experience" aria-label="Experience">
       <div class="sec-head">
         <h2>Experience</h2>
@@ -783,6 +744,45 @@
         <span class="k">Also shipped</span>
         <a href="https://github.com/NishitSK/LearnPath-AI" target="_blank" rel="noopener">LearnPath-AI ↗</a>
         <a href="https://github.com/NishitSK" target="_blank" rel="noopener">Everything else on GitHub ↗</a>
+      </div>
+    </section>
+
+    <section id="flagship" aria-label="Flagship project">
+      <div class="sec-head">
+        <h2>Flagship</h2>
+        <span class="tag">VTU Major Project · Research Paper In Progress</span>
+      </div>
+      <div class="flagship reveal">
+        <div class="flag-copy">
+          <p class="role">Scheduler · Forecasting · Cloud</p>
+          <h3>Carbon-Aware AI Workload Scheduler</h3>
+          <p>A two-phase, <strong>SLA-first scheduler</strong> that decides <em>where</em> and <em>when</em> cloud jobs run. Phase 1 hard-filters regions on latency and capacity; Phase 2 minimises emissions across the survivors using a full energy model (CPU × TDP × exec time × PUE × carbon intensity).</p>
+          <p>Delay-tolerant jobs get <strong>joint spatial + temporal shifting</strong> with a 4-hour look-ahead; latency-sensitive jobs shift across space only. Live carbon intensity comes from the <strong>Electricity Maps API</strong> with MongoDB caching; forecasting benchmarked with <strong>LSTM vs ARIMA vs persistence</strong> on 4 years of per-zone grid data, tested fully out-of-sample on every season of 2025. An <strong>RL scheduler is benchmarked against the rule-based one</strong>, with a FastAPI analytics layer and React dashboard on top.</p>
+          <div class="stack-tags">
+            <span>Python</span><span>FastAPI</span><span>LSTM</span><span>ARIMA</span><span>RL</span><span>Electricity Maps API</span><span>MongoDB</span><span>React</span>
+          </div>
+        </div>
+        <div class="flag-metrics">
+          <div class="metric"><span class="num"><em>−31.5%</em></span><span class="lbl">CO₂ across all 50 workloads</span></div>
+          <div class="metric"><span class="num">100%</span><span class="lbl">SLA compliance — 50/50 jobs</span></div>
+          <div class="metric"><span class="num">−39.9%</span><span class="lbl">CO₂ on delay-tolerant jobs</span></div>
+          <div class="metric"><span class="num">6</span><span class="lbl">Regions, Norway → Mumbai</span></div>
+        </div>
+      </div>
+
+      <!-- signature: region board, scoped to this one project now -->
+      <div class="board reveal" aria-label="Cloud region carbon intensity board">
+        <div class="board-head">
+          <span class="t">Region board — grid carbon intensity, gCO₂/kWh</span>
+          <span class="live">Scheduler input</span>
+        </div>
+        <div class="board-row"><span class="region">EU-NORTH-2 · Norway</span><span class="src">Hydro 97%</span><div class="bar-track"><div class="bar" data-w="2.1"></div></div><span class="ci">~15</span></div>
+        <div class="board-row"><span class="region">EU-NORTH-1 · Sweden</span><span class="src">Hydro + Nuclear</span><div class="bar-track"><div class="bar" data-w="5.6"></div></div><span class="ci">~40</span></div>
+        <div class="board-row"><span class="region">EU-WEST-1 · Ireland</span><span class="src">Wind + Gas</span><div class="bar-track"><div class="bar" data-w="32.4"></div></div><span class="ci">~230</span></div>
+        <div class="board-row"><span class="region">US-EAST-1 · Virginia</span><span class="src">Mixed</span><div class="bar-track"><div class="bar dirty" data-w="53.5"></div></div><span class="ci">~380</span></div>
+        <div class="board-row"><span class="region">AP-SOUTHEAST-1 · Singapore</span><span class="src">Gas</span><div class="bar-track"><div class="bar dirty" data-w="63.4"></div></div><span class="ci">~450</span></div>
+        <div class="board-row"><span class="region">AP-SOUTH-1 · Mumbai</span><span class="src">Coal dominant</span><div class="bar-track"><div class="bar dirty" data-w="100"></div></div><span class="ci">~710</span></div>
+        <div class="board-note">Same job, 47× difference in emissions depending on where it runs. That gap is what this scheduler exploits.</div>
       </div>
     </section>
 
