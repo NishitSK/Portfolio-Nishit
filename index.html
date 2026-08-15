@@ -230,7 +230,7 @@
     font-family: var(--mono);
     font-size: calc(var(--cell) * 0.92);
     line-height: 1;
-    color: #EDEDF2;
+    color: var(--tc, #EDEDF2);
     contain: strict;
     transition: transform 75ms linear, color 75ms linear;
   }
@@ -932,9 +932,9 @@
 
     function colsForWidth() {
       const w = innerWidth;
-      if (w <= 560) return 30;
-      if (w <= 900) return 46;
-      return 64;
+      if (w <= 560) return 40;
+      if (w <= 900) return 60;
+      return 84;
     }
 
     let tiles = [];      // flat list of { el, char }
@@ -956,7 +956,7 @@
       // varies by engine and can alias away thin detail (hair strands,
       // edges); box-averaging ourselves is deterministic and truer to the
       // source photo.
-      const SS = 4;
+      const SS = 5;
       const canvas = document.createElement('canvas');
       canvas.width = cols * SS;
       canvas.height = rows * SS;
@@ -966,20 +966,25 @@
       ctx.drawImage(sourceEl, 0, 0, canvas.width, canvas.height);
       const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-      const raw = new Array(cols * rows);
+      const raw = new Array(cols * rows);       // luminance 0..1
+      const rgb = new Array(cols * rows);        // [r,g,b] averaged, 0..255
       let min = 1, max = 0;
       for (let ry = 0; ry < rows; ry++) {
         for (let rx = 0; rx < cols; rx++) {
-          let sum = 0;
+          let sumR = 0, sumG = 0, sumB = 0;
           for (let sy = 0; sy < SS; sy++) {
             for (let sx = 0; sx < SS; sx++) {
               const px = (rx * SS + sx), py = (ry * SS + sy);
               const idx = (py * canvas.width + px) * 4;
-              sum += 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
+              sumR += data[idx]; sumG += data[idx + 1]; sumB += data[idx + 2];
             }
           }
-          const brightness = sum / (SS * SS) / 255;
-          raw[ry * cols + rx] = brightness;
+          const n = SS * SS;
+          const r = sumR / n, g = sumG / n, b = sumB / n;
+          const brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+          const i = ry * cols + rx;
+          raw[i] = brightness;
+          rgb[i] = [r, g, b];
           if (brightness < min) min = brightness;
           if (brightness > max) max = brightness;
         }
@@ -990,15 +995,28 @@
       // brightness range (e.g. a near-black background that isn't pure #000).
       const range = Math.max(max - min, 0.05);
       const chars = new Array(cols * rows);
+      const colors = new Array(cols * rows);
       for (let i = 0; i < raw.length; i++) {
         const stretched = Math.min(1, Math.max(0, (raw[i] - min) / range));
         const idx = Math.min(RAMP.length - 1, Math.floor(stretched * RAMP.length));
         chars[i] = RAMP[idx];
+
+        // Scale the cell's real color by the same stretch applied to its
+        // brightness, so hue stays true to the photo while intensity tracks
+        // the contrast enhancement (dim background pixels dim further,
+        // lit subject pixels stay vivid rather than looking washed out).
+        const [r, g, b] = rgb[i];
+        const ratio = Math.min(4, stretched / Math.max(raw[i], 0.02));
+        const cr = Math.min(255, Math.round(r * ratio));
+        const cg = Math.min(255, Math.round(g * ratio));
+        const cb = Math.min(255, Math.round(b * ratio));
+        colors[i] = `rgb(${cr},${cg},${cb})`;
       }
-      return chars;
+      return { chars, colors };
     }
 
-    function buildGrid(chars) {
+    function buildGrid(sample) {
+      const { chars, colors } = sample;
       grid.style.setProperty('--cols', cols);
       const cellPx = Math.min(11, Math.max(6, Math.floor(480 / cols)));
       grid.style.setProperty('--cell', cellPx + 'px');
@@ -1009,8 +1027,9 @@
         const span = document.createElement('span');
         span.className = 'flap';
         span.textContent = chars[i];
+        span.style.setProperty('--tc', colors[i]);
         frag.appendChild(span);
-        tiles[i] = { el: span, char: chars[i] };
+        tiles[i] = { el: span, char: chars[i], color: colors[i] };
       }
       grid.appendChild(frag);
     }
