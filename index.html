@@ -919,9 +919,9 @@
     // it only affects which character gets picked, not how many tiles exist.
     const RAMP = ' .`^",:;Il!i><~+_-?][}{1)(|ftjrxnuvczXYUJCLQOZmwqpdbkhao*#MW&8%B@$';
     const CYCLE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
-    const FLIP_STEPS = 2;        // random characters shown before settling
+    const FLIP_STEPS = 1;        // one flip through a random char, then settle
     const CELL_ASPECT = 1.18;    // must match .flap's height:width ratio in CSS
-    const ROW_STEP_MS = 26;      // time between one printed layer (row) and the next
+    const ROW_STEP_MS = 34;      // time between one printed layer (row) and the next
     const INTRA_ROW_STEP_MS = 2; // nozzle sweep speed across a layer, left -> right
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -932,9 +932,9 @@
 
     function colsForWidth() {
       const w = innerWidth;
-      if (w <= 560) return 40;
-      if (w <= 900) return 60;
-      return 84;
+      if (w <= 560) return 22;
+      if (w <= 900) return 34;
+      return 48;
     }
 
     let tiles = [];      // flat list of { el, char }
