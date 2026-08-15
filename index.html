@@ -232,7 +232,7 @@
     line-height: 1;
     color: var(--tc, #EDEDF2);
     contain: strict;
-    transition: transform 75ms linear, color 75ms linear;
+    transition: transform 90ms cubic-bezier(.37,0,.63,1), color 90ms cubic-bezier(.37,0,.63,1);
   }
   .flap.rot {
     transform: rotateX(90deg);
@@ -921,7 +921,7 @@
     const CYCLE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
     const FLIP_STEPS = 2;        // random characters shown before settling
     const CELL_ASPECT = 1.18;    // must match .flap's height:width ratio in CSS
-    const ROW_STEP_MS = 22;      // time between one printed layer (row) and the next
+    const ROW_STEP_MS = 26;      // time between one printed layer (row) and the next
     const INTRA_ROW_STEP_MS = 2; // nozzle sweep speed across a layer, left -> right
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -1042,7 +1042,7 @@
         let done = false;
         const finish = () => { if (done) return; done = true; resolve(); };
         el.addEventListener('transitionend', finish, { once: true });
-        setTimeout(finish, 180);
+        setTimeout(finish, 200);
       });
     }
 
@@ -1070,7 +1070,7 @@
         const sweepCol = layer % 2 === 0 ? col : (cols - 1 - col);
         flipTile(tile, layer * ROW_STEP_MS + sweepCol * INTRA_ROW_STEP_MS);
       });
-      const worst = rows * ROW_STEP_MS + cols * INTRA_ROW_STEP_MS + FLIP_STEPS * 2 * 180 + 200;
+      const worst = rows * ROW_STEP_MS + cols * INTRA_ROW_STEP_MS + FLIP_STEPS * 2 * 200 + 200;
       setTimeout(() => { animating = false; }, worst);
     }
 
