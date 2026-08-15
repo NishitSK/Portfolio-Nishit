@@ -1,6 +1,24 @@
-import { animate, stagger } from 'animejs';
+import { animate, stagger, scrambleText } from 'animejs';
 
 const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Section headings decode in from scrambled characters as they scroll into
+// view — the same "characters resolving into meaning" idea as the ASCII
+// portrait's flip reveal, but via animejs's own text-scramble utility.
+if (!prefersReduced) {
+  const headingObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      animate(e.target, {
+        innerHTML: scrambleText({ chars: 'uppercase', revealRate: 45 }),
+        duration: 900,
+        ease: 'outQuad',
+      });
+      headingObserver.unobserve(e.target);
+    });
+  }, { threshold: 0.6 });
+  document.querySelectorAll('.sec-head h2').forEach(h => headingObserver.observe(h));
+}
 
 function fillBars(root) {
   const bars = root.querySelectorAll('.bar');
