@@ -50,40 +50,126 @@
     padding: 0 24px;
   }
 
-  /* ---------- top bar ---------- */
-  header.top {
-    border-bottom: 1px solid var(--ink);
-    position: sticky;
-    top: 0;
-    background: var(--paper);
-    z-index: 10;
-  }
-  .top-inner {
+  /* ---------- bubble menu (replaces the old sticky top bar) ---------- */
+  .bubble-menu {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 56px;
+    gap: 16px;
+    padding: 0 24px;
+    pointer-events: none;
+    z-index: 100;
   }
-  .wordmark {
+  .bubble-menu .bubble {
+    --bubble-size: 48px;
+    height: var(--bubble-size);
+    border-radius: calc(var(--bubble-size) / 2);
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    box-shadow: 0 4px 16px rgba(10, 22, 51, 0.12);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+  }
+  .bubble-menu .logo-bubble {
+    padding: 0 20px;
     font-weight: 900;
     letter-spacing: -0.02em;
-    font-size: 17px;
+    font-size: 15px;
     text-decoration: none;
+    color: var(--ink);
+    white-space: nowrap;
   }
-  .wordmark span { color: var(--cobalt); }
-  nav.main-nav { display: flex; gap: 28px; }
-  nav.main-nav a {
-    font-family: var(--mono);
-    font-size: 12px;
-    letter-spacing: 0.08em;
+  .bubble-menu .logo-bubble span { color: var(--cobalt); }
+  .bubble-menu .toggle-bubble {
+    width: var(--bubble-size);
+    border: 1px solid var(--ink);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+  .bubble-menu .menu-line {
+    width: 20px;
+    height: 2px;
+    background: var(--ink);
+    border-radius: 2px;
+    display: block;
+    margin: 0 auto;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    transform-origin: center;
+  }
+  .bubble-menu .menu-line + .menu-line { margin-top: 5px; }
+  .bubble-menu .menu-btn.open .menu-line:first-child { transform: translateY(3.5px) rotate(45deg); }
+  .bubble-menu .menu-btn.open .menu-line:last-child { transform: translateY(-3.5px) rotate(-45deg); }
+
+  .bubble-menu-items {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+    padding: 90px 0 24px;
+    pointer-events: auto; /* needs to receive wheel/touch scroll when content exceeds viewport height */
+    z-index: 99;
+    background: rgba(10, 22, 51, 0.94);
+  }
+  .bubble-menu-items[hidden] { display: none; }
+  .bubble-menu-items .pill-list {
+    list-style: none;
+    margin: 0;
+    padding: 0 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+    max-width: 520px;
+    pointer-events: auto;
+  }
+  .bubble-menu-items .pill-link {
+    --hover-bg: var(--cobalt);
+    --item-rot: 0deg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 18px 0;
+    border-radius: 999px;
+    background: var(--paper);
+    color: var(--ink);
+    text-decoration: none;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(20px, 4vw, 30px);
+    letter-spacing: -0.01em;
     text-transform: uppercase;
-    text-decoration: none;
-    color: var(--slate);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+    transition: background 0.25s ease, color 0.25s ease;
+    will-change: transform;
+    /* GSAP only ever touches --pill-scale (a plain custom property), never
+       the transform shorthand itself, so this composed value and the
+       :hover rule below never fight over ownership of `transform`. */
+    transform: scale(var(--pill-scale, 0)) rotate(var(--item-rot));
   }
-  nav.main-nav a:hover { color: var(--cobalt); }
+  @media (min-width: 640px) {
+    .bubble-menu-items .pill-link:hover {
+      background: var(--hover-bg);
+      color: #fff;
+      transform: rotate(var(--item-rot)) scale(calc(var(--pill-scale, 1) * 1.05));
+    }
+  }
+  .bubble-menu-items .pill-label { display: inline-block; }
 
   /* ---------- hero ---------- */
-  .hero { padding: 72px 0 0; }
+  .hero { padding: 128px 0 0; }
   .hero-eyebrow {
     font-family: var(--mono);
     font-size: 13px;
@@ -610,29 +696,59 @@
     .proj + .proj { border-top: 1px solid var(--ink); }
     .board-row { grid-template-columns: 1fr 80px; }
     .board-row .src, .board-row .bar-track { display: none; }
-    nav.main-nav { display: none; }
     section { padding-top: 64px; }
     .sec-head { flex-wrap: wrap; }
     .sec-head .tag { white-space: normal; }
     .portrait-section { margin-top: 64px; padding: 56px 16px; }
+    .bubble-menu { top: 14px; padding: 0 16px; }
+    .bubble-menu .bubble { --bubble-size: 44px; }
+    .bubble-menu .logo-bubble { padding: 0 14px; font-size: 13px; }
   }
 </style>
 </head>
 <body>
 
-<header class="top">
-  <div class="wrap top-inner">
-    <a class="wordmark" href="#">NISHIT&nbsp;S&nbsp;K<span>.</span></a>
-    <nav class="main-nav" aria-label="Main">
-      <a href="#experience">Experience</a>
-      <a href="#work">Work</a>
-      <a href="#flagship">Flagship</a>
-      <a href="#stack">Stack</a>
-      <a href="#about">About</a>
-      <a href="#contact">Contact</a>
-    </nav>
+  <nav class="bubble-menu" id="bubbleMenu" aria-label="Main navigation">
+    <a class="bubble logo-bubble" href="#" aria-label="Home">NISHIT&nbsp;S&nbsp;K<span>.</span></a>
+    <button type="button" class="bubble toggle-bubble menu-btn" id="menuToggle" aria-label="Toggle navigation" aria-pressed="false">
+      <span class="menu-line"></span>
+      <span class="menu-line short"></span>
+    </button>
+  </nav>
+  <div class="bubble-menu-items" id="bubbleMenuItems" aria-hidden="true" hidden>
+    <ul class="pill-list" role="menu" aria-label="Menu links">
+      <li role="none" class="pill-col">
+        <a role="menuitem" href="#experience" aria-label="Experience" class="pill-link" data-rotation="-6" style="--hover-bg:#142E7B">
+          <span class="pill-label">Experience</span>
+        </a>
+      </li>
+      <li role="none" class="pill-col">
+        <a role="menuitem" href="#work" aria-label="Work" class="pill-link" data-rotation="6" style="--hover-bg:#1B44D8">
+          <span class="pill-label">Work</span>
+        </a>
+      </li>
+      <li role="none" class="pill-col">
+        <a role="menuitem" href="#flagship" aria-label="Flagship" class="pill-link" data-rotation="-4" style="--hover-bg:#0A7D4F">
+          <span class="pill-label">Flagship</span>
+        </a>
+      </li>
+      <li role="none" class="pill-col">
+        <a role="menuitem" href="#stack" aria-label="Stack" class="pill-link" data-rotation="4" style="--hover-bg:#6E8CFF">
+          <span class="pill-label">Stack</span>
+        </a>
+      </li>
+      <li role="none" class="pill-col">
+        <a role="menuitem" href="#about" aria-label="About" class="pill-link" data-rotation="-6" style="--hover-bg:#0A1633">
+          <span class="pill-label">About</span>
+        </a>
+      </li>
+      <li role="none" class="pill-col">
+        <a role="menuitem" href="#contact" aria-label="Contact" class="pill-link" data-rotation="6" style="--hover-bg:#B23A2E">
+          <span class="pill-label">Contact</span>
+        </a>
+      </li>
+    </ul>
   </div>
-</header>
 
 <main>
   <div class="wrap">

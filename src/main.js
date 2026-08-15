@@ -321,3 +321,93 @@ if (prefersReduced) {
     img.addEventListener('error', placeholderSource);
   }
 })();
+
+// ---------- Bubble menu (nav) ----------
+// Ported from React Bits' BubbleMenu to vanilla JS + GSAP: a floating
+// logo/toggle pair that expands into a full-screen list of rotated pill
+// links. GSAP only ever animates the --pill-scale custom property (never
+// the transform shorthand itself), so it composes cleanly with the
+// CSS-driven rotation instead of fighting over which one owns `transform`.
+(function () {
+  const toggle = document.getElementById('menuToggle');
+  const overlay = document.getElementById('bubbleMenuItems');
+  if (!toggle || !overlay) return;
+
+  const pills = [...overlay.querySelectorAll('.pill-link')];
+  const labels = [...overlay.querySelectorAll('.pill-label')];
+  let isOpen = false;
+  let isAnimating = false;
+
+  pills.forEach(p => {
+    p.style.setProperty('--item-rot', `${p.dataset.rotation || 0}deg`);
+  });
+
+  function applyRotationForWidth() {
+    const isDesktop = innerWidth >= 900;
+    pills.forEach(p => {
+      p.style.setProperty('--item-rot', isDesktop ? `${p.dataset.rotation || 0}deg` : '0deg');
+    });
+  }
+  applyRotationForWidth();
+  addEventListener('resize', applyRotationForWidth);
+
+  function open() {
+    if (isAnimating || isOpen) return;
+    isAnimating = true;
+    isOpen = true;
+    toggle.classList.add('open');
+    toggle.setAttribute('aria-pressed', 'true');
+    overlay.hidden = false;
+    overlay.setAttribute('aria-hidden', 'false');
+
+    if (prefersReduced) {
+      gsap.set(pills, { '--pill-scale': 1 });
+      gsap.set(labels, { y: 0, autoAlpha: 1 });
+      isAnimating = false;
+      return;
+    }
+
+    gsap.killTweensOf([...pills, ...labels]);
+    gsap.set(pills, { '--pill-scale': 0 });
+    gsap.set(labels, { y: 24, autoAlpha: 0 });
+
+    pills.forEach((pill, i) => {
+      const delay = i * 0.1 + gsap.utils.random(-0.04, 0.04);
+      const tl = gsap.timeline({ delay, onComplete: () => { if (i === pills.length - 1) isAnimating = false; } });
+      tl.to(pill, { '--pill-scale': 1, duration: 0.5, ease: 'back.out(1.5)' });
+      if (labels[i]) {
+        tl.to(labels[i], { y: 0, autoAlpha: 1, duration: 0.5, ease: 'power3.out' }, '-=0.45');
+      }
+    });
+  }
+
+  function close() {
+    if (isAnimating || !isOpen) return;
+    isOpen = false;
+    toggle.classList.remove('open');
+    toggle.setAttribute('aria-pressed', 'false');
+    overlay.setAttribute('aria-hidden', 'true');
+
+    if (prefersReduced) {
+      overlay.hidden = true;
+      return;
+    }
+
+    isAnimating = true;
+    gsap.killTweensOf([...pills, ...labels]);
+    gsap.to(labels, { y: 24, autoAlpha: 0, duration: 0.2, ease: 'power3.in' });
+    gsap.to(pills, {
+      '--pill-scale': 0,
+      duration: 0.2,
+      ease: 'power3.in',
+      onComplete: () => {
+        overlay.hidden = true;
+        isAnimating = false;
+      },
+    });
+  }
+
+  toggle.addEventListener('click', () => { isOpen ? close() : open(); });
+  pills.forEach(pill => pill.addEventListener('click', close));
+  addEventListener('keydown', e => { if (e.key === 'Escape' && isOpen) close(); });
+})();
