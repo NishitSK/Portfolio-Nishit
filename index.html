@@ -932,9 +932,9 @@
 
     function colsForWidth() {
       const w = innerWidth;
-      if (w <= 560) return 24;
-      if (w <= 900) return 36;
-      return 50;
+      if (w <= 560) return 30;
+      if (w <= 900) return 46;
+      return 64;
     }
 
     let tiles = [];      // flat list of { el, char }
@@ -950,18 +950,49 @@
       // matching the source photo instead of squashing it vertically.
       rows = Math.max(1, Math.round((cols * aspect) / CELL_ASPECT));
 
+      // Supersample: draw at SS x the target grid, then hand-average each
+      // SS-by-SS block into one cell. A single drawImage straight down to
+      // cols x rows leans on the browser's own downscale filter, which
+      // varies by engine and can alias away thin detail (hair strands,
+      // edges); box-averaging ourselves is deterministic and truer to the
+      // source photo.
+      const SS = 4;
       const canvas = document.createElement('canvas');
-      canvas.width = cols;
-      canvas.height = rows;
+      canvas.width = cols * SS;
+      canvas.height = rows * SS;
       const ctx = canvas.getContext('2d');
-      ctx.drawImage(sourceEl, 0, 0, cols, rows);
-      const { data } = ctx.getImageData(0, 0, cols, rows);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(sourceEl, 0, 0, canvas.width, canvas.height);
+      const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
+      const raw = new Array(cols * rows);
+      let min = 1, max = 0;
+      for (let ry = 0; ry < rows; ry++) {
+        for (let rx = 0; rx < cols; rx++) {
+          let sum = 0;
+          for (let sy = 0; sy < SS; sy++) {
+            for (let sx = 0; sx < SS; sx++) {
+              const px = (rx * SS + sx), py = (ry * SS + sy);
+              const idx = (py * canvas.width + px) * 4;
+              sum += 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
+            }
+          }
+          const brightness = sum / (SS * SS) / 255;
+          raw[ry * cols + rx] = brightness;
+          if (brightness < min) min = brightness;
+          if (brightness > max) max = brightness;
+        }
+      }
+
+      // Contrast-stretch to the image's own min/max so the full character
+      // ramp gets used regardless of whether the source is a flat, narrow
+      // brightness range (e.g. a near-black background that isn't pure #000).
+      const range = Math.max(max - min, 0.05);
       const chars = new Array(cols * rows);
-      for (let i = 0; i < cols * rows; i++) {
-        const r = data[i * 4], g = data[i * 4 + 1], b = data[i * 4 + 2];
-        const brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        const idx = Math.min(RAMP.length - 1, Math.floor(brightness * RAMP.length));
+      for (let i = 0; i < raw.length; i++) {
+        const stretched = Math.min(1, Math.max(0, (raw[i] - min) / range));
+        const idx = Math.min(RAMP.length - 1, Math.floor(stretched * RAMP.length));
         chars[i] = RAMP[idx];
       }
       return chars;
